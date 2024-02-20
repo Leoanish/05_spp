@@ -138,9 +138,9 @@ Let's do that below for the RCBD example.
 ```{r}
 spp_rcbd_rand %>%
   # Rearranging columns  
-  dplyr::select(block, wplot, krate_kgha, 
+  dplyr::select(blocks, wplot, krate_kgha, 
                 splot, nrate_kgha,
-                trtname) %>%
+                trt_name) %>%
   write_csv("../output/spp_rcbd_randomization_table.csv")
 
 
