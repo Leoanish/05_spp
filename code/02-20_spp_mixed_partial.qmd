@@ -29,7 +29,8 @@ You should NOT analyze a given designed study with a different design than what 
 This is not an option!  
 
 ```{r data import}
-spp_rcbd_df <- read_csv("../data/wheat_nk_balkh.csv")
+spp_rcbd_df <- read_csv("../data/wheat_nk_balkh.csv") %>% 
+  rename(block = rep)
 
 spp_rcbd_df
 ```
@@ -109,7 +110,8 @@ We have 2 random variance component from the split-plot because we have 2 differ
 options(contrasts = c("contr.sum", "contr.poly"))
 
 # Model fitting
-spp_rcbd_mix_mod 
+spp_rcbd_mix_mod <- lmer(data = spp_rcbd_dfw, 
+                         yield_kgha ~ nrate_kgha*krate_kgha + (1|block/krate_kgha))
 
 # Summary
 summary(spp_rcbd_mix_mod)
@@ -155,7 +157,7 @@ One difference in mixed models is that the 3 first assumptions are also applied 
 
 ### Block random effects are iid ~ N(0,var_a)  
 ```{r randeff_block}
-randeff_block
+randeff_block <- ranef(spp_rcbd_mix_mod)$block
 
 randeff_block
 ```
@@ -178,7 +180,7 @@ Nothing to worry here, especially since we only have 4 points.
 
 ### Block:krate random effects are iid ~ N(0,var_b)  
 ```{r randeff_block}
-randeff_blockkrate 
+randeff_blockkrate <- ranef(spp_rcbd_mix_mod)$`krate_kgha:block`
 
 randeff_blockkrate
 ```
@@ -207,11 +209,11 @@ ggplot(spp_rcbd_mix_resid, aes(x=.fitted, y=.studresid))+
              size = 3,
              alpha = .7)+
   geom_smooth()+
-  geom_hline(yintercept = c(-3,3), color = "red")+
+  geom_hline(yintercept = c(-3,3), color = "red", linetype = 2)+
   theme_bw()
 ```
 
-- **Independence**: seems liker there is a potential pattern, but since error bands comprise 0 on the y-axis, I'm not worried.  
+- **Independence**: seems like there is a potential pattern, but since error bands comprise 0 on the y-axis, I'm not worried.  
 
 - **Variance homoscedastic**: seems constant across the x-axis.   
 
@@ -237,6 +239,7 @@ ggplot(spp_rcbd_mix_resid, aes(x=.studresid))+
                fill = "purple",
                alpha = .7)+
   scale_x_continuous(breaks = c(-3,0,3), limits = c(-3,3))+
+  geom_vline(xintercept = 0, linetype = 2, color = "yellow", lwd = 1)+
   theme_bw()
 
 ```
@@ -263,14 +266,14 @@ When we ask for the interaction means (like in chunk above), the emmean error is
 What happens with the emmean error if we ask for the emmean of the main effects of K and N rate separately? 
 
 ```{r k rate means}
-
+emmeans(spp_rcbd_mix_mod, ~krate_kgha)
 ```
 The SE of the whole-plot treatment factor (k rate) is **232**.
 
 What about for the split-plot treatment factor (n rate)?  
 
 ```{r n rate means }
-
+emmeans(spp_rcbd_mix_mod, ~nrate_kgha)
 ```
 It is 209.  
 
